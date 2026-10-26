@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  DEACTIVATED
+}
+
+enum QuestionType {
+  MCQ
+  TRUE_FALSE
+  SHORT_ANSWER
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  AUTO_SUBMITTED
+  GRADED
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  name         String        @db.VarChar(100)
+  email        String        @unique @db.VarChar(150)
+  passwordHash String        @map("password_hash")
+  role         Role          @default(STUDENT)
+  status       UserStatus    @default(PENDING)
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  exams        Exam[]
+  attempts     ExamAttempt[]
+
+  @@map("users")
+}
+
+model Exam {
+  id               Int           @id @default(autoincrement())
+  title            String        @db.VarChar(200)
+  description      String?       @db.Text
+  durationMinutes  Int           @map("duration_minutes")
+  startTime        DateTime      @map("start_time")
+  endTime          DateTime      @map("end_time")
+  totalMarks       Int           @map("total_marks")
+  passingMarks     Int           @map("passing_marks")
+  shuffleQuestions Boolean       @default(false) @map("shuffle_questions")
+  maxTabSwitches   Int           @default(3) @map("max_tab_switches")
+  createdBy        Int           @map("created_by")
+  createdAt        DateTime      @default(now()) @map("created_at")
+
+  creator          User          @relation(fields: [createdBy], references: [id])
+  questions        Question[]
+  attempts         ExamAttempt[]
+
+  @@index([startTime, endTime])
+  @@map("exams")
+}
+
+model Question {
+  id            Int             @id @default(autoincrement())
+  examId        Int             @map("exam_id")
+  questionText  String          @db.Text @map("question_text")
+  questionType  QuestionType    @map("question_type")
+  options       Json?
+  correctAnswer String?         @db.Text @map("correct_answer")
+  marks         Int             @default(1)
+
+  exam          Exam            @relation(fields: [examId], references: [id], onDelete: Cascade)
+  answers       StudentAnswer[]
+
+  @@index([examId])
+  @@map("questions")
+}
+
+model ExamAttempt {
+  id             Int             @id @default(autoincrement())
+  studentId      Int             @map("student_id")
+  examId         Int             @map("exam_id")
+  startTime      DateTime        @default(now()) @map("start_time")
+  endTime        DateTime?       @map("end_time")
+  status         AttemptStatus   @default(IN_PROGRESS)
+  totalScore     Float           @default(0) @map("total_score")
+  tabSwitchCount Int             @default(0) @map("tab_switch_count")
+
+  student        User            @relation(fields: [studentId], references: [id])
+  exam           Exam            @relation(fields: [examId], references: [id], onDelete: Cascade)
+  answers        StudentAnswer[]
+
+  @@unique([studentId, examId])
+  @@map("exam_attempts")
+}
+
+model StudentAnswer {
+  id             Int          @id @default(autoincrement())
+  attemptId      Int          @map("attempt_id")
+  questionId     Int          @map("question_id")
+  selectedAnswer String?      @db.Text @map("selected_answer")
+  markedReview   Boolean      @default(false) @map("marked_review")
+  isCorrect      Boolean?     @map("is_correct")
+  marksObtained  Float        @default(0) @map("marks_obtained")
+
+  attempt        ExamAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question       Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, questionId])
+  @@map("student_answers")
+}
