@@ -10,7 +10,22 @@ export interface User {
   email: string;
   role: Role;
   status?: UserStatus;
+  phone?: string | null;
+  address?: string | null;
+  avatarUrl?: string | null;
   createdAt?: string;
+
+  // student fields
+  studentCode?: string | null;
+  institute?: string | null;
+  targetExam?: string | null;
+  dateOfBirth?: string | null;
+
+  // teacher fields
+  designation?: string | null;
+  subject?: string | null;
+  qualification?: string | null;
+  bio?: string | null;
 }
 
 export interface Exam {
