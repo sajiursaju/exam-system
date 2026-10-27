@@ -8,6 +8,7 @@ import type { Exam } from "@/lib/types";
 import { Badge, Loading, Notice, PageTitle, STATE_LABEL, stateTone } from "@/components/ui";
 import { useUser } from "@/components/Shell";
 import UsersPanel from "@/components/UsersPanel";
+import DashboardNav from "@/components/admin/DashboardNav";
 
 export default function AdminDashboard() {
   const me = useUser();
@@ -28,6 +29,8 @@ export default function AdminDashboard() {
       <PageTitle title="Exams">
         <Link href="/admin/exams/new" className="btn btn-primary">New exam</Link>
       </PageTitle>
+
+      <DashboardNav role={me.role} />
 
       {error && <Notice tone="bad">{error}</Notice>}
       {!exams && !error && <Loading />}

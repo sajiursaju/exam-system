@@ -25,6 +25,9 @@ const cookieOptions = {
     maxAge: 24 * 60 * 60 * 1000,
 };
 
+// Same options without maxAge, used only when clearing the cookie
+const { maxAge, ...clearCookieOptions } = cookieOptions;
+
 // POST /api/auth/register
 exports.register = asyncHandler(async(req, res) => {
     const data = registerSchema.parse(req.body);
@@ -72,7 +75,7 @@ exports.login = asyncHandler(async(req, res) => {
 
 // POST /api/auth/logout
 exports.logout = (req, res) => {
-    res.clearCookie("token", cookieOptions);
+    res.clearCookie("token", clearCookieOptions);
     res.json({ message: "Logged out" });
 };
 
