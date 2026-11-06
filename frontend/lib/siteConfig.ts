@@ -1,15 +1,22 @@
+// lib/siteConfig.ts
+
 export const siteConfig = {
-    name: "ExamPro",
-    tagline: "স্মার্ট পরীক্ষা, স্মার্ট প্রস্তুতি",
-  };
-  
-  export const navLinks = [
-    { label: "Home", href: "/#home" },
-    { label: "Features", href: "/#features" },
-    { label: "How It Works", href: "/#how" },
-    { label: "Pricing", href: "/#pricing" },
-    { label: "SMS Pricing", href: "/#smspricing" },
-    { label: "Clients", href: "/#clients" },
-    { label: "Tutorial", href: "/#tutorial" },
-    { label: "FAQ", href: "/#faq" },
-  ];
+  name: "MentorMainul",
+  tagline: "Online Exams • Tutorials • Job Preparation",
+  ceo: {
+    name: "Mainul",
+    title: "CEO",
+    // TODO: put your real portfolio URL here
+    portfolioUrl: "https://your-portfolio-url.com",
+  },
+};
+
+export const navLinks = [
+  { label: "Home", href: "/home" },
+  { label: "Features", href: "/features" },
+  { label: "Online Exams", href: "/online-exams" },
+  { label: "Tutorials", href: "/tutorials" },
+  { label: "Pricing", href: "/#pricing" },
+  { label: "Our Students", href: "/#our-students" },
+  { label: "FAQ", href: "/#faq" },
+];
