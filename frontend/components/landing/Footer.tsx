@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { siteConfig, navLinks } from "@/lib/siteConfig";
+import { categories } from "@/lib/tutorialData";
 
 export default function Footer() {
+  // Split the categories by group so each group gets its own footer column
+  const academic = categories.filter((c) => c.group === "academic");
+  const job = categories.filter((c) => c.group === "job");
+
   return (
     <>
       {/* Request Demo section: target of every "Request Demo" button (/#demo) */}
@@ -30,7 +35,7 @@ export default function Footer() {
 
       {/* Footer */}
       <footer className="bg-slate-900 text-slate-300">
-        <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-3">
+        <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-5">
           {/* Column 1: brand */}
           <div>
             <h3 className="text-xl font-extrabold text-white">{siteConfig.name}</h3>
@@ -44,7 +49,7 @@ export default function Footer() {
           {/* Column 2: quick links */}
           <div>
             <h4 className="font-semibold text-white">Quick Links</h4>
-            <ul className="mt-4 grid grid-cols-2 gap-2 text-sm">
+            <ul className="mt-4 space-y-2 text-sm">
               {navLinks.map((l) => (
                 <li key={l.label}>
                   <Link href={l.href} className="hover:text-white">
@@ -60,13 +65,49 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Column 3: contact */}
+          {/* Column 3: academic categories */}
+          <div>
+            <h4 className="font-semibold text-white">
+              <Link href="/tutorials" className="hover:text-indigo-300">
+                Academic
+              </Link>
+            </h4>
+            <ul className="mt-4 space-y-2 text-sm">
+              {academic.map((c) => (
+                <li key={c.slug}>
+                  <Link href={`/tutorials/${c.slug}`} className="hover:text-white">
+                    {c.icon} {c.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Column 4: job preparation categories */}
+          <div>
+            <h4 className="font-semibold text-white">
+              <Link href="/tutorials" className="hover:text-indigo-300">
+                Job Preparation
+              </Link>
+            </h4>
+            <ul className="mt-4 space-y-2 text-sm">
+              {job.map((c) => (
+                <li key={c.slug}>
+                  <Link href={`/tutorials/${c.slug}`} className="hover:text-white">
+                    {c.icon} {c.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Column 5: contact */}
           <div>
             <h4 className="font-semibold text-white">Contact</h4>
             <ul className="mt-4 space-y-2 text-sm">
               <li>📧 your@email.com</li>
               <li>📞 +880 1XXX-XXXXXX</li>
-              <li>📍 Your city, Bangladesh</li>
+              <li>📍 Dinajpur, Bangladesh</li>
             </ul>
           </div>
         </div>

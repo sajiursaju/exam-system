@@ -1,9 +1,8 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { z } = require("zod");
-const prisma = require("../lib/prisma");
 const asyncHandler = require("../lib/asyncHandler");
-const profileSelect = require("../lib/profileSelect");
+const { tables, findByEmail, findById } = require("../lib/accounts");
 const env = require("../config/env");
 
 const registerSchema = z.object({
@@ -31,14 +30,22 @@ const { maxAge, ...clearCookieOptions } = cookieOptions;
 // POST /api/auth/register
 exports.register = asyncHandler(async(req, res) => {
     const data = registerSchema.parse(req.body);
+    const email = data.email.toLowerCase();
+
+    // The email must be unique across admins, teachers and students,
+    // otherwise login could not tell which account it belongs to.
+    if (await findByEmail(email)) {
+        return res.status(409).json({ message: "Email already registered" });
+    }
+
     const passwordHash = await bcrypt.hash(data.password, 10);
 
-    await prisma.user.create({
+    // Teacher goes into the teachers table, student into the students table
+    await tables[data.role].create({
         data: {
             name: data.name,
-            email: data.email.toLowerCase(),
+            email,
             passwordHash,
-            role: data.role,
             status: "PENDING", // an admin must approve first
         },
     });
@@ -49,27 +56,27 @@ exports.register = asyncHandler(async(req, res) => {
 // POST /api/auth/login
 exports.login = asyncHandler(async(req, res) => {
     const data = loginSchema.parse(req.body);
-    const user = await prisma.user.findUnique({
-        where: { email: data.email.toLowerCase() },
-    });
+    const found = await findByEmail(data.email.toLowerCase());
 
-    const ok = user && (await bcrypt.compare(data.password, user.passwordHash));
+    const ok = found && (await bcrypt.compare(data.password, found.account.passwordHash));
     if (!ok) return res.status(401).json({ message: "Invalid email or password" });
 
-    if (user.status === "PENDING") {
+    const { role, account } = found;
+
+    if (account.status === "PENDING") {
         return res.status(403).json({ message: "Account awaiting admin approval" });
     }
-    if (user.status === "DEACTIVATED") {
+    if (account.status === "DEACTIVATED") {
         return res.status(403).json({ message: "Account deactivated" });
     }
 
-    const token = jwt.sign({ id: user.id, role: user.role }, env.jwtSecret, {
+    const token = jwt.sign({ id: account.id, role }, env.jwtSecret, {
         expiresIn: env.jwtExpiresIn,
     });
 
     res.cookie("token", token, cookieOptions);
     res.json({
-        user: { id: user.id, name: user.name, email: user.email, role: user.role },
+        user: { id: account.id, name: account.name, email: account.email, role },
     });
 });
 
@@ -80,11 +87,9 @@ exports.logout = (req, res) => {
 };
 
 // GET /api/auth/me
-// Loads the full profile from the database so the navbar gets avatar, name, etc.
+// Loads the full profile from the right table so the navbar gets avatar, name, etc.
 exports.me = asyncHandler(async(req, res) => {
-    const user = await prisma.user.findUnique({
-        where: { id: req.user.id },
-        select: profileSelect,
-    });
-    res.json({ user });
+    const account = await findById(req.user.role, req.user.id);
+    const { passwordHash, ...profile } = account; // never send the password hash
+    res.json({ user: {...profile, role: req.user.role } });
 });

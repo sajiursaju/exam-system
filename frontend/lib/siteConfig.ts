@@ -12,7 +12,7 @@ export const siteConfig = {
 };
 
 export const navLinks = [
-  { label: "Home", href: "/home" },
+  { label: "Home", href: "/" },
   { label: "Features", href: "/features" },
   { label: "Online Exams", href: "/online-exams" },
   { label: "Tutorials", href: "/tutorials" },

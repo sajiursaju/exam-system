@@ -7,12 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  ADMIN
-  TEACHER
-  STUDENT
-}
-
 enum UserStatus {
   PENDING
   ACTIVE
@@ -32,55 +26,92 @@ enum AttemptStatus {
   GRADED
 }
 
-model User {
+// ───────────── ACCOUNTS: one table per role ─────────────
+
+model Admin {
+  id           Int        @id @default(autoincrement())
+  name         String     @db.VarChar(100)
+  email        String     @unique @db.VarChar(150)
+  passwordHash String     @map("password_hash")
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  phone        String?    @db.VarChar(20)
+  address      String?    @db.Text
+  avatarUrl    String?    @map("avatar_url") @db.VarChar(255)
+
+  exams        Exam[]
+
+  @@map("admins")
+}
+
+model Teacher {
+  id            Int        @id @default(autoincrement())
+  name          String     @db.VarChar(100)
+  email         String     @unique @db.VarChar(150)
+  passwordHash  String     @map("password_hash")
+  status        UserStatus @default(PENDING)
+  createdAt     DateTime   @default(now()) @map("created_at")
+
+  phone         String?    @db.VarChar(20)
+  address       String?    @db.Text
+  avatarUrl     String?    @map("avatar_url") @db.VarChar(255)
+
+  designation   String?    @db.VarChar(100)
+  subject       String?    @db.VarChar(100)
+  qualification String?    @db.VarChar(150)
+  bio           String?    @db.Text
+
+  exams         Exam[]
+
+  @@map("teachers")
+}
+
+model Student {
   id           Int           @id @default(autoincrement())
   name         String        @db.VarChar(100)
   email        String        @unique @db.VarChar(150)
   passwordHash String        @map("password_hash")
-  role         Role          @default(STUDENT)
   status       UserStatus    @default(PENDING)
   createdAt    DateTime      @default(now()) @map("created_at")
 
-  // Profile fields shared by students and teachers
   phone        String?       @db.VarChar(20)
   address      String?       @db.Text
   avatarUrl    String?       @map("avatar_url") @db.VarChar(255)
 
-  // Student-only profile fields
   studentCode  String?       @map("student_code") @db.VarChar(50)
   institute    String?       @db.VarChar(150)
   targetExam   String?       @map("target_exam") @db.VarChar(100)
   dateOfBirth  DateTime?     @map("date_of_birth")
 
-  // Teacher-only profile fields
-  designation   String?      @db.VarChar(100)
-  subject       String?      @db.VarChar(100)
-  qualification String?      @db.VarChar(150)
-  bio           String?      @db.Text
-
-  exams        Exam[]
   attempts     ExamAttempt[]
 
-  @@map("users")
+  @@map("students")
 }
 
-model Exam {
-  id               Int           @id @default(autoincrement())
-  title            String        @db.VarChar(200)
-  description      String?       @db.Text
-  durationMinutes  Int           @map("duration_minutes")
-  startTime        DateTime      @map("start_time")
-  endTime          DateTime      @map("end_time")
-  totalMarks       Int           @map("total_marks")
-  passingMarks     Int           @map("passing_marks")
-  shuffleQuestions Boolean       @default(false) @map("shuffle_questions")
-  maxTabSwitches   Int           @default(3) @map("max_tab_switches")
-  createdBy        Int           @map("created_by")
-  createdAt        DateTime      @default(now()) @map("created_at")
+// ───────────── EXAMS ─────────────
 
-  creator          User          @relation(fields: [createdBy], references: [id])
-  questions        Question[]
-  attempts         ExamAttempt[]
+model Exam {
+  id                 Int           @id @default(autoincrement())
+  title              String        @db.VarChar(200)
+  description        String?       @db.Text
+  durationMinutes    Int           @map("duration_minutes")
+  startTime          DateTime      @map("start_time")
+  endTime            DateTime      @map("end_time")
+  totalMarks         Int           @map("total_marks")
+  passingMarks       Int           @map("passing_marks")
+  shuffleQuestions   Boolean       @default(false) @map("shuffle_questions")
+  maxTabSwitches     Int           @default(3) @map("max_tab_switches")
+  createdAt          DateTime      @default(now()) @map("created_at")
+
+  // An exam is created by an admin OR a teacher, so one of these two is filled
+  createdByAdminId   Int?          @map("created_by_admin_id")
+  createdByTeacherId Int?          @map("created_by_teacher_id")
+
+  adminCreator       Admin?        @relation(fields: [createdByAdminId], references: [id])
+  teacherCreator     Teacher?      @relation(fields: [createdByTeacherId], references: [id])
+  questions          Question[]
+  attempts           ExamAttempt[]
 
   @@index([startTime, endTime])
   @@map("exams")
@@ -112,7 +143,7 @@ model ExamAttempt {
   totalScore     Float           @default(0) @map("total_score")
   tabSwitchCount Int             @default(0) @map("tab_switch_count")
 
-  student        User            @relation(fields: [studentId], references: [id])
+  student        Student         @relation(fields: [studentId], references: [id])
   exam           Exam            @relation(fields: [examId], references: [id], onDelete: Cascade)
   answers        StudentAnswer[]
 

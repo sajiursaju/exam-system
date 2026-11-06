@@ -18,15 +18,39 @@ const features: Feature[] = [
     description:
       "Take timed MCQ, true/false and short-answer exams with a live timer, auto-submit and a question navigator.",
     buttonLabel: "See Online Exams",
-    href: "/#online-exams",
+    href: "/online-exams",
   },
   {
     icon: "🎬",
     title: "Video Courses",
     description:
-      "Subject-wise video classes for Class 9-12 and govt job preparation, with a full syllabus for every course.",
+      "Subject-wise video classes for Class 9-12, English, Admission, Nursing and job preparation, with a full syllabus for every course.",
     buttonLabel: "Browse Tutorials",
     href: "/tutorials",
+  },
+  {
+    icon: "🔤",
+    title: "English (Basic to Advance)",
+    description:
+      "Learn English step by step: grammar, vocabulary, reading, writing and spoken English, from the basics to advanced level.",
+    buttonLabel: "View English Course",
+    href: "/tutorials/english",
+  },
+  {
+    icon: "🎯",
+    title: "Admission Preparation",
+    description:
+      "University and college admission test preparation with subject-wise classes and model tests.",
+    buttonLabel: "View Admission Course",
+    href: "/tutorials/admission",
+  },
+  {
+    icon: "🩺",
+    title: "Nursing Preparation",
+    description:
+      "Nursing admission and recruitment preparation covering science subjects and core nursing topics.",
+    buttonLabel: "View Nursing Course",
+    href: "/tutorials/nursing",
   },
   {
     icon: "🏛️",
@@ -37,12 +61,20 @@ const features: Feature[] = [
     href: "/tutorials/bcs",
   },
   {
+    icon: "💼",
+    title: "All Job Preparation",
+    description:
+      "One complete course covering every major government and private job exam, from Bangla and English to ICT and reasoning.",
+    buttonLabel: "View All Job Course",
+    href: "/tutorials/all-job",
+  },
+  {
     icon: "📊",
     title: "Result Analytics",
     description:
       "See your score, correct and wrong answers, and track your progress after every exam.",
     buttonLabel: "Try an Exam",
-    href: "/#online-exams",
+    href: "/online-exams",
   },
   {
     icon: "🛡️",

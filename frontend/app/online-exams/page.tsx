@@ -68,6 +68,42 @@ const exams: ExamCard[] = [
     marks: 40,
     type: "Free",
   },
+  {
+    icon: "🔤",
+    title: "English (Basic to Advance) Test",
+    titleBn: "ইংরেজি (বেসিক থেকে অ্যাডভান্স) পরীক্ষা",
+    questions: 40,
+    duration: "30 min",
+    marks: 40,
+    type: "Free",
+  },
+  {
+    icon: "🎯",
+    title: "Admission Model Test",
+    titleBn: "ভর্তি প্রস্তুতি মডেল টেস্ট",
+    questions: 100,
+    duration: "60 min",
+    marks: 100,
+    type: "Paid",
+  },
+  {
+    icon: "🩺",
+    title: "Nursing Model Test",
+    titleBn: "নার্সিং মডেল টেস্ট",
+    questions: 100,
+    duration: "60 min",
+    marks: 100,
+    type: "Paid",
+  },
+  {
+    icon: "💼",
+    title: "All Job Preparation Model Test",
+    titleBn: "সকল চাকরির মডেল টেস্ট",
+    questions: 100,
+    duration: "60 min",
+    marks: 100,
+    type: "Paid",
+  },
 ];
 
 export default function OnlineExamsPage() {
