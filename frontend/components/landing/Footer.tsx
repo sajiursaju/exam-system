@@ -10,22 +10,22 @@ export default function Footer() {
   return (
     <>
       {/* Request Demo section: target of every "Request Demo" button (/#demo) */}
-      <section id="demo" className="bg-indigo-600 py-20 text-center text-white">
+      <section id="demo" className="bg-slate-800 py-20 text-center text-white">
         <div className="mx-auto max-w-3xl px-6">
           <h2 className="text-3xl font-bold">Want to see it in action?</h2>
-          <p className="mt-3 text-indigo-100">
+          <p className="mt-3 text-slate-300">
             Request a free demo and we will show you how the platform works.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a
               href="mailto:your@email.com?subject=Demo Request"
-              className="w-full rounded-lg bg-white px-8 py-3 font-semibold text-indigo-600 hover:bg-indigo-50 sm:w-auto"
+              className="w-full rounded-lg bg-white px-8 py-3 font-semibold text-slate-900 hover:bg-slate-100 sm:w-auto"
             >
               🎬 Request Demo
             </a>
             <Link
               href="/login"
-              className="w-full rounded-lg border border-white px-8 py-3 font-semibold hover:bg-indigo-700 sm:w-auto"
+              className="w-full rounded-lg border border-slate-500 px-8 py-3 font-semibold hover:bg-slate-700 sm:w-auto"
             >
               🔐 Login
             </Link>
@@ -68,7 +68,7 @@ export default function Footer() {
           {/* Column 3: academic categories */}
           <div>
             <h4 className="font-semibold text-white">
-              <Link href="/tutorials" className="hover:text-indigo-300">
+              <Link href="/tutorials" className="hover:text-slate-300">
                 Academic
               </Link>
             </h4>
@@ -86,7 +86,7 @@ export default function Footer() {
           {/* Column 4: job preparation categories */}
           <div>
             <h4 className="font-semibold text-white">
-              <Link href="/tutorials" className="hover:text-indigo-300">
+              <Link href="/tutorials" className="hover:text-slate-300">
                 Job Preparation
               </Link>
             </h4>

@@ -1,16 +1,14 @@
 const { z } = require("zod");
 const prisma = require("../lib/prisma");
 const asyncHandler = require("../lib/asyncHandler");
-const profileSelect = require("../lib/profileSelect");
 
 const PAGE_SIZE = 10;
 
-// What a TEACHER is allowed to see about a student (no address, no date of birth)
-const teacherViewSelect = {
+// Fields shown in the list, per table
+const studentSelect = {
     id: true,
     name: true,
     email: true,
-    role: true,
     status: true,
     createdAt: true,
     phone: true,
@@ -20,6 +18,23 @@ const teacherViewSelect = {
     targetExam: true,
 };
 
+const teacherSelect = {
+    id: true,
+    name: true,
+    email: true,
+    status: true,
+    createdAt: true,
+    phone: true,
+    avatarUrl: true,
+    subject: true,
+    designation: true,
+};
+
+// Pick the right table (and fields) for the role
+function modelFor(role) {
+    return role === "STUDENT" ? { model: prisma.student, select: studentSelect } : { model: prisma.teacher, select: teacherSelect };
+}
+
 const listQuery = z.object({
     role: z.enum(["STUDENT", "TEACHER"]),
     status: z.enum(["PENDING", "ACTIVE", "DEACTIVATED"]).optional(),
@@ -28,26 +43,32 @@ const listQuery = z.object({
 });
 
 const statusBody = z.object({
+    role: z.enum(["STUDENT", "TEACHER"]),
     status: z.enum(["ACTIVE", "DEACTIVATED"]),
 });
 
 // GET /api/admin/people/counts
 exports.counts = asyncHandler(async(req, res) => {
     if (req.user.role === "TEACHER") {
-        const students = await prisma.user.count({
-            where: { role: "STUDENT", status: "ACTIVE" },
+        const students = await prisma.student.count({
+            where: { status: "ACTIVE" },
         });
         return res.json({ students });
     }
 
-    const [students, teachers, pending] = await prisma.$transaction([
-        prisma.user.count({ where: { role: "STUDENT" } }),
-        prisma.user.count({ where: { role: "TEACHER" } }),
-        prisma.user.count({
-            where: { status: "PENDING", role: { in: ["STUDENT", "TEACHER"] } },
-        }),
+    const [students, teachers, pendingStudents, pendingTeachers] =
+    await prisma.$transaction([
+        prisma.student.count(),
+        prisma.teacher.count(),
+        prisma.student.count({ where: { status: "PENDING" } }),
+        prisma.teacher.count({ where: { status: "PENDING" } }),
     ]);
-    res.json({ students, teachers, pending });
+
+    res.json({
+        students,
+        teachers,
+        pending: pendingStudents + pendingTeachers,
+    });
 });
 
 // GET /api/admin/people?role=STUDENT&status=PENDING&search=rahim&page=1
@@ -60,7 +81,7 @@ exports.list = asyncHandler(async(req, res) => {
         return res.status(403).json({ message: "Teachers can only view the student list" });
     }
 
-    const where = { role };
+    const where = {};
     if (isTeacher) {
         where.status = "ACTIVE"; // teachers only see active students
     } else if (status) {
@@ -68,7 +89,7 @@ exports.list = asyncHandler(async(req, res) => {
     }
 
     if (search) {
-        // MySQL text matching is already case-insensitive, so no "mode" option is needed
+        // MySQL text matching is already case-insensitive
         where.OR = [
             { name: { contains: search } },
             { email: { contains: search } },
@@ -76,16 +97,21 @@ exports.list = asyncHandler(async(req, res) => {
         ];
     }
 
-    const [total, users] = await prisma.$transaction([
-        prisma.user.count({ where }),
-        prisma.user.findMany({
+    const { model, select } = modelFor(role);
+
+    const [total, rows] = await prisma.$transaction([
+        model.count({ where }),
+        model.findMany({
             where,
-            select: isTeacher ? teacherViewSelect : profileSelect,
+            select,
             orderBy: { createdAt: "desc" },
             skip: (page - 1) * PAGE_SIZE,
             take: PAGE_SIZE,
         }),
     ]);
+
+    // The new tables have no "role" column, so add it for the frontend
+    const users = rows.map((r) => ({...r, role }));
 
     res.json({
         users,
@@ -96,7 +122,7 @@ exports.list = asyncHandler(async(req, res) => {
     });
 });
 
-// PATCH /api/admin/people/:id/status   body: { "status": "ACTIVE" | "DEACTIVATED" }
+// PATCH /api/admin/people/:id/status   body: { "role": "STUDENT", "status": "ACTIVE" | "DEACTIVATED" }
 // (the route only lets ADMIN reach this)
 exports.setStatus = asyncHandler(async(req, res) => {
     const id = Number(req.params.id);
@@ -104,22 +130,17 @@ exports.setStatus = asyncHandler(async(req, res) => {
         return res.status(400).json({ message: "Invalid user id" });
     }
 
-    const { status } = statusBody.parse(req.body);
+    const { role, status } = statusBody.parse(req.body);
+    const { model, select } = modelFor(role);
 
-    const target = await prisma.user.findUnique({
-        where: { id },
-        select: { id: true, role: true },
-    });
+    const target = await model.findUnique({ where: { id }, select: { id: true } });
     if (!target) return res.status(404).json({ message: "User not found" });
-    if (target.role === "ADMIN") {
-        return res.status(403).json({ message: "Admin accounts cannot be changed here" });
-    }
 
-    const user = await prisma.user.update({
+    const row = await model.update({
         where: { id },
         data: { status },
-        select: profileSelect,
+        select,
     });
 
-    res.json({ user });
+    res.json({ user: {...row, role } });
 });
