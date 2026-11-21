@@ -1,3 +1,4 @@
+// frontend/components/landing/Footer.tsx
 import Link from "next/link";
 import { siteConfig, navLinks } from "@/lib/siteConfig";
 import { categories } from "@/lib/tutorialData";
@@ -10,22 +11,24 @@ export default function Footer() {
   return (
     <>
       {/* Request Demo section: target of every "Request Demo" button (/#demo) */}
-      <section id="demo" className="bg-slate-800 py-20 text-center text-white">
+      <section id="demo" className="bg-teal-900 py-20 text-center text-white">
         <div className="mx-auto max-w-3xl px-6">
           <h2 className="text-3xl font-bold">Want to see it in action?</h2>
-          <p className="mt-3 text-slate-300">
+          <p className="mt-3 text-teal-100">
             Request a free demo and we will show you how the platform works.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a
-              href="mailto:your@email.com?subject=Demo Request"
-              className="w-full rounded-lg bg-white px-8 py-3 font-semibold text-slate-900 hover:bg-slate-100 sm:w-auto"
+              href="https://www.facebook.com/mainulhmoni11"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full rounded-lg bg-white px-8 py-3 font-semibold text-teal-900 hover:bg-slate-100 sm:w-auto transition-colors"
             >
               🎬 Request Demo
             </a>
             <Link
               href="/login"
-              className="w-full rounded-lg border border-slate-500 px-8 py-3 font-semibold hover:bg-slate-700 sm:w-auto"
+              className="w-full rounded-lg border border-teal-600 px-8 py-3 font-semibold hover:bg-teal-800 sm:w-auto transition-colors"
             >
               🔐 Login
             </Link>
@@ -36,10 +39,15 @@ export default function Footer() {
       {/* Footer */}
       <footer className="bg-slate-900 text-slate-300">
         <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-5">
+          
           {/* Column 1: brand */}
           <div>
-            <h3 className="text-xl font-extrabold text-white">{siteConfig.name}</h3>
-            <p className="mt-1 text-sm text-slate-400">{siteConfig.tagline}</p>
+            <h3 className="text-xl font-extrabold text-white">
+              Mr Exam Mentor Mainul
+            </h3>
+            <p className="mt-1 text-sm font-medium text-teal-400">
+              Online Exams • Tutorials • Job Preparation
+            </p>
             <p className="mt-4 text-sm text-slate-400">
               An online examination platform for BCS and job exam preparation, with
               timed exams, instant results and analytics.
@@ -68,7 +76,7 @@ export default function Footer() {
           {/* Column 3: academic categories */}
           <div>
             <h4 className="font-semibold text-white">
-              <Link href="/tutorials" className="hover:text-slate-300">
+              <Link href="/tutorials" className="hover:text-teal-400">
                 Academic
               </Link>
             </h4>
@@ -86,7 +94,7 @@ export default function Footer() {
           {/* Column 4: job preparation categories */}
           <div>
             <h4 className="font-semibold text-white">
-              <Link href="/tutorials" className="hover:text-slate-300">
+              <Link href="/tutorials" className="hover:text-teal-400">
                 Job Preparation
               </Link>
             </h4>
@@ -104,17 +112,35 @@ export default function Footer() {
           {/* Column 5: contact */}
           <div>
             <h4 className="font-semibold text-white">Contact</h4>
-            <ul className="mt-4 space-y-2 text-sm">
-              <li>📧 your@email.com</li>
-              <li>📞 +880 1XXX-XXXXXX</li>
-              <li>📍 Dinajpur, Bangladesh</li>
+            <ul className="mt-4 space-y-3 text-sm">
+              <li>
+                <a 
+                  href="https://www.facebook.com/mainulhmoni11" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 hover:text-teal-400 transition-colors"
+                >
+                  <span>📘</span> Facebook Profile
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="tel:+8801755488844" 
+                  className="flex items-center gap-2 hover:text-teal-400 transition-colors"
+                >
+                  <span>📞</span> 01755488844
+                </a>
+              </li>
+              <li className="flex items-center gap-2">
+                <span>📍</span> Dinajpur, Bangladesh
+              </li>
             </ul>
           </div>
         </div>
 
         {/* Bottom bar */}
         <div className="border-t border-slate-800 py-5 text-center text-sm text-slate-500">
-          © {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
+          © {new Date().getFullYear()} Mr Exam Mentor Mainul. All rights reserved.
         </div>
       </footer>
     </>
