@@ -8,17 +8,25 @@ function CategoryCard({ category }: { category: Category }) {
   return (
     <Link
       href={`/tutorials/${category.slug}`}
-      className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-indigo-400 hover:shadow-md"
+      className="group flex flex-col rounded-xl border-2 border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-emerald-500 hover:shadow-lg"
     >
-      <div className="text-4xl">{category.icon}</div>
-      <h3 className="mt-3 text-lg font-bold text-slate-800 group-hover:text-indigo-600">
+      {/* Icon box */}
+      <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-emerald-50 text-3xl transition group-hover:bg-emerald-600">
+        {category.icon}
+      </div>
+
+      <h3 className="mt-4 text-lg font-bold text-slate-800 group-hover:text-emerald-700">
         {category.name}
       </h3>
-      <p className="text-sm font-medium text-indigo-500">{category.nameBn}</p>
-      <p className="mt-2 text-sm text-slate-600">{category.description}</p>
-      <p className="mt-4 text-sm font-semibold text-indigo-600">
-        View syllabus →
-      </p>
+      <p className="text-sm font-medium text-emerald-600">{category.nameBn}</p>
+      <p className="mt-2 flex-1 text-sm text-slate-600">{category.description}</p>
+
+      {/* Bottom box with a divider line above it */}
+      <div className="mt-5 border-t border-slate-200 pt-4">
+        <span className="inline-block rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition group-hover:bg-emerald-600 group-hover:text-white">
+          View syllabus →
+        </span>
+      </div>
     </Link>
   );
 }

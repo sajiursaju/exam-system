@@ -1,3 +1,4 @@
+// frontend/lib/types.ts
 export type Role = "ADMIN" | "TEACHER" | "STUDENT";
 export type UserStatus = "PENDING" | "ACTIVE" | "DEACTIVATED";
 export type QuestionType = "MCQ" | "TRUE_FALSE" | "SHORT_ANSWER";
@@ -31,6 +32,7 @@ export interface User {
 export interface Exam {
   id: number;
   title: string;
+  targetExam: string | null;        // <-- CHANGED TO targetExam
   description: string | null;
   durationMinutes: number;
   startTime: string;
@@ -41,11 +43,9 @@ export interface Exam {
   maxTabSwitches: number;
   state: ExamState;
   _count?: { questions: number; attempts?: number };
-  // only present for students
   attempts?: { id: number; status: AttemptStatus; totalScore: number }[];
 }
 
-// Staff view: includes the correct answer
 export interface Question {
   id: number;
   questionText: string;
@@ -55,7 +55,6 @@ export interface Question {
   marks: number;
 }
 
-// Student view while taking the exam: no correct answer
 export interface ExamQuestion {
   id: number;
   questionText: string;

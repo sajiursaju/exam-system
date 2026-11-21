@@ -94,6 +94,7 @@ model Student {
 model Exam {
   id                 Int           @id @default(autoincrement())
   title              String        @db.VarChar(200)
+  targetExam         String?       @map("target_exam") @db.VarChar(100) // <-- ADDED THIS LINE
   description        String?       @db.Text
   durationMinutes    Int           @map("duration_minutes")
   startTime          DateTime      @map("start_time")

@@ -34,6 +34,7 @@ app.use("/api/admin/people", require("./routes/adminPeople.routes"));
 app.use("/api/exams", require("./routes/exams.routes"));
 app.use("/api/questions", require("./routes/questions.routes"));
 app.use("/api/attempts", require("./routes/attempts.routes"));
+app.use("/api/pdf", require("./routes/pdf.routes"));
 
 app.use(notFound);
 app.use(errorHandler);

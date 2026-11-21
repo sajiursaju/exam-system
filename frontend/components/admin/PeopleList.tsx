@@ -1,7 +1,7 @@
+// frontend/components/admin/PeopleList.tsx
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import type { Role, User, UserStatus } from "@/lib/types";
@@ -21,11 +21,15 @@ const statusTabs: { label: string; value: "" | UserStatus }[] = [
   { label: "Deactivated", value: "DEACTIVATED" },
 ];
 
-const badgeClass: Record<UserStatus, string> = {
-  PENDING: "bg-amber-50 text-amber-700",
-  ACTIVE: "bg-green-50 text-green-700",
-  DEACTIVATED: "bg-slate-100 text-slate-500",
+const badgeStyle: Record<UserStatus, { background: string; color: string }> = {
+  PENDING:     { background: "#fef3c7", color: "#b45309" },
+  ACTIVE:      { background: "#dcfce7", color: "#15803d" },
+  DEACTIVATED: { background: "#f1f5f9", color: "#64748b" },
 };
+
+function getInitials(name: string) {
+  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+}
 
 export default function PeopleList({ role }: { role: "STUDENT" | "TEACHER" }) {
   const router = useRouter();
@@ -40,15 +44,11 @@ export default function PeopleList({ role }: { role: "STUDENT" | "TEACHER" }) {
 
   const isAdmin = data?.viewerRole === "ADMIN";
   const title = role === "STUDENT" ? "Students" : "Teachers";
-  const extraHeader = role === "STUDENT" ? "Institute / Target exam" : "Subject / Designation";
-  const columnCount = isAdmin ? 6 : 4;
+  const extraHeader = role === "STUDENT" ? "Institute / Target Exam" : "Subject / Designation";
 
-  // Wait 400 ms after typing stops before searching
+  // Debounce search input
   useEffect(() => {
-    const t = setTimeout(() => {
-      setSearch(searchInput.trim());
-      setPage(1);
-    }, 400);
+    const t = setTimeout(() => { setSearch(searchInput.trim()); setPage(1); }, 400);
     return () => clearTimeout(t);
   }, [searchInput]);
 
@@ -61,35 +61,26 @@ export default function PeopleList({ role }: { role: "STUDENT" | "TEACHER" }) {
       if (search) params.set("search", search);
       setData(await api<ListResponse>(`/admin/people?${params.toString()}`));
     } catch (e) {
-      if (e instanceof ApiError && e.status === 401) {
-        router.replace("/login");
-        return;
-      }
+      if (e instanceof ApiError && e.status === 401) { router.replace("/login"); return; }
       setError(e instanceof ApiError ? e.message : "Could not load the list.");
     } finally {
       setLoading(false);
     }
   }, [role, page, status, search, router]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
+  // ✅ FIX: send role in body so backend knows which table to update
   async function changeStatus(user: User, next: "ACTIVE" | "DEACTIVATED") {
-    if (
-      next === "DEACTIVATED" &&
-      !window.confirm(`Deactivate ${user.name}? They will not be able to log in.`)
-    ) {
-      return;
-    }
+    if (next === "DEACTIVATED" && !window.confirm(`Deactivate ${user.name}? They won't be able to log in.`)) return;
     setBusyId(user.id);
     setError("");
     try {
       await api(`/admin/people/${user.id}/status`, {
         method: "PATCH",
-        body: { status: next },
+        body: { role, status: next }, // ✅ role added here
       });
-      await load(); // reload so the filter and the totals stay correct
+      await load();
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Could not update the user.");
     } finally {
@@ -102,40 +93,48 @@ export default function PeopleList({ role }: { role: "STUDENT" | "TEACHER" }) {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
-      <Link href="/admin/dashboard" className="text-sm text-indigo-600 hover:underline">
-        ← Back to Dashboard
-      </Link>
-
-      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      {/* Page header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">{title}</h1>
-          <p className="text-sm text-slate-500">{data ? `${data.total} total` : "Loading..."}</p>
+          <h1 style={{ fontSize: "22px", fontWeight: 700, margin: 0 }}>{title}</h1>
+          <p style={{ fontSize: "13px", color: "var(--muted)", marginTop: "4px" }}>
+            {data ? `${data.total} total` : "Loading…"}
+          </p>
         </div>
         <input
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Search name, email or phone"
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 sm:w-72"
+          placeholder="Search name, email or phone…"
+          style={{
+            padding: "8px 14px",
+            fontSize: "14px",
+            border: "1px solid var(--line)",
+            borderRadius: "8px",
+            background: "var(--surface)",
+            color: "var(--fg)",
+            width: "260px",
+            outline: "none",
+          }}
         />
       </div>
 
-      {/* Status tabs (admin only) */}
+      {/* Status tabs */}
       {isAdmin && (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "16px" }}>
           {statusTabs.map((t) => (
-            <button
-              key={t.label}
-              type="button"
-              onClick={() => {
-                setStatus(t.value);
-                setPage(1);
+            <button key={t.label} type="button"
+              onClick={() => { setStatus(t.value); setPage(1); }}
+              style={{
+                padding: "5px 16px",
+                fontSize: "13px",
+                borderRadius: "20px",
+                border: "1px solid var(--line)",
+                background: status === t.value ? "var(--accent)" : "var(--surface)",
+                color: status === t.value ? "#fff" : "var(--fg)",
+                cursor: "pointer",
+                fontWeight: status === t.value ? 600 : 400,
               }}
-              className={`rounded-full px-4 py-1.5 text-sm font-semibold ${
-                status === t.value
-                  ? "bg-indigo-600 text-white"
-                  : "border border-slate-300 text-slate-600 hover:bg-slate-50"
-              }`}
             >
               {t.label}
             </button>
@@ -144,139 +143,131 @@ export default function PeopleList({ role }: { role: "STUDENT" | "TEACHER" }) {
       )}
 
       {error && (
-        <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+        <div style={{ marginBottom: "12px", padding: "10px 14px", background: "#fef2f2", color: "#b91c1c", borderRadius: "8px", fontSize: "13px" }}>
+          {error}
+        </div>
       )}
 
-      {/* Table */}
-      <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <table className="w-full min-w-[640px] text-left text-sm">
-          <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500">
-            <tr>
-              <th className="px-4 py-3">Name</th>
-              <th className="px-4 py-3">Phone</th>
-              <th className="px-4 py-3">{extraHeader}</th>
-              {isAdmin && <th className="px-4 py-3">Status</th>}
-              <th className="px-4 py-3">Joined</th>
-              {isAdmin && <th className="px-4 py-3 text-right">Action</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {loading && !data && (
-              <tr>
-                <td colSpan={columnCount} className="px-4 py-8 text-center text-slate-500">
-                  Loading...
-                </td>
-              </tr>
-            )}
-
-            {data && data.users.length === 0 && (
-              <tr>
-                <td colSpan={columnCount} className="px-4 py-8 text-center text-slate-500">
-                  No {title.toLowerCase()} found.
-                </td>
-              </tr>
-            )}
-
-            {data?.users.map((u) => {
-              const [line1, line2] = extraLines(u);
-              const st = (u.status ?? "PENDING") as UserStatus;
-              return (
-                <tr key={u.id} className="border-b border-slate-100 last:border-0">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      {u.avatarUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={u.avatarUrl}
-                          alt={u.name}
-                          className="h-9 w-9 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-600">
-                          {u.name.charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                      <div className="min-w-0">
-                        <p className="truncate font-semibold text-slate-800">{u.name}</p>
-                        <p className="truncate text-xs text-slate-500">{u.email}</p>
-                      </div>
+      {/* Cards grid */}
+      {loading && !data ? (
+        <p style={{ color: "var(--muted)", fontSize: "14px" }}>Loading…</p>
+      ) : data?.users.length === 0 ? (
+        <p style={{ color: "var(--muted)", fontSize: "14px" }}>No {title.toLowerCase()} found.</p>
+      ) : (
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+          gap: "16px",
+          marginBottom: "24px",
+        }}>
+          {data?.users.map((u) => {
+            const [line1, line2] = extraLines(u);
+            const st = (u.status ?? "PENDING") as UserStatus;
+            const badge = badgeStyle[st];
+            return (
+              <div key={u.id} style={{
+                background: "var(--surface)",
+                border: "1px solid var(--line)",
+                borderRadius: "12px",
+                padding: "18px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+              }}>
+                {/* Top: avatar + name + status */}
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  {u.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={u.avatarUrl} alt={u.name}
+                      style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                  ) : (
+                    <div style={{
+                      width: 48, height: 48, borderRadius: "50%",
+                      background: "var(--accent)", color: "#fff",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: "16px", fontWeight: 700, flexShrink: 0,
+                    }}>
+                      {getInitials(u.name)}
                     </div>
-                  </td>
-                  <td className="px-4 py-3 text-slate-700">
-                    {u.phone || <span className="text-slate-400">Not added</span>}
-                  </td>
-                  <td className="px-4 py-3">
-                    <p className="text-slate-700">
-                      {line1 || <span className="text-slate-400">Not added</span>}
-                    </p>
-                    <p className="text-xs text-slate-500">{line2 || ""}</p>
-                  </td>
-                  {isAdmin && (
-                    <td className="px-4 py-3">
-                      <span
-                        className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${badgeClass[st]}`}
-                      >
-                        {st}
-                      </span>
-                    </td>
                   )}
-                  <td className="px-4 py-3 text-slate-600">
-                    {u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-GB") : "-"}
-                  </td>
-                  {isAdmin && (
-                    <td className="px-4 py-3 text-right">
-                      {st === "ACTIVE" ? (
-                        <button
-                          type="button"
-                          disabled={busyId === u.id}
-                          onClick={() => changeStatus(u, "DEACTIVATED")}
-                          className="rounded-lg border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
-                        >
-                          Deactivate
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          disabled={busyId === u.id}
-                          onClick={() => changeStatus(u, "ACTIVE")}
-                          className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
-                        >
-                          {st === "PENDING" ? "Approve" : "Activate"}
-                        </button>
-                      )}
-                    </td>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: "15px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {u.name}
+                    </div>
+                    <div style={{ fontSize: "12px", color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {u.email}
+                    </div>
+                  </div>
+                  <span style={{
+                    ...badge,
+                    fontSize: "11px", fontWeight: 600,
+                    padding: "3px 10px", borderRadius: "20px", flexShrink: 0,
+                  }}>
+                    {st}
+                  </span>
+                </div>
+
+                {/* Info rows */}
+                <div style={{ fontSize: "13px", color: "var(--muted)", display: "flex", flexDirection: "column", gap: "4px" }}>
+                  {u.phone && <div>📞 {u.phone}</div>}
+                  {line1 && <div>🏫 {line1}</div>}
+                  {line2 && (
+                    <div style={{ fontWeight: 600, color: "var(--fg)", fontSize: "12px" }}>
+                      🎯 {line2}
+                    </div>
                   )}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                  {u.createdAt && (
+                    <div>📅 Joined {new Date(u.createdAt).toLocaleDateString("en-GB")}</div>
+                  )}
+                </div>
+
+                {/* Action button (admin only) */}
+                {isAdmin && (
+                  <div style={{ marginTop: "auto" }}>
+                    {st === "ACTIVE" ? (
+                      <button type="button" disabled={busyId === u.id}
+                        onClick={() => changeStatus(u, "DEACTIVATED")}
+                        style={{
+                          width: "100%", padding: "7px", fontSize: "13px", fontWeight: 600,
+                          border: "1px solid #fca5a5", borderRadius: "8px",
+                          background: "#fef2f2", color: "#b91c1c", cursor: "pointer",
+                        }}>
+                        {busyId === u.id ? "Updating…" : "Deactivate"}
+                      </button>
+                    ) : (
+                      <button type="button" disabled={busyId === u.id}
+                        onClick={() => changeStatus(u, "ACTIVE")}
+                        style={{
+                          width: "100%", padding: "7px", fontSize: "13px", fontWeight: 600,
+                          border: "none", borderRadius: "8px",
+                          background: "var(--accent)", color: "#fff", cursor: "pointer",
+                        }}>
+                        {busyId === u.id ? "Updating…" : st === "PENDING" ? "✓ Approve" : "Activate"}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Pagination */}
       {data && data.pages > 1 && (
-        <div className="mt-4 flex items-center justify-between text-sm text-slate-600">
-          <button
-            type="button"
-            disabled={page <= 1}
-            onClick={() => setPage(page - 1)}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 font-semibold hover:bg-slate-50 disabled:opacity-50"
-          >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "14px", color: "var(--muted)" }}>
+          <button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}
+            className="btn" style={{ opacity: page <= 1 ? 0.4 : 1 }}>
             ← Previous
           </button>
-          <span>
-            Page {data.page} of {data.pages}
-          </span>
-          <button
-            type="button"
-            disabled={page >= data.pages}
-            onClick={() => setPage(page + 1)}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 font-semibold hover:bg-slate-50 disabled:opacity-50"
-          >
+          <span>Page {data.page} of {data.pages}</span>
+          <button type="button" disabled={page >= data.pages} onClick={() => setPage(page + 1)}
+            className="btn" style={{ opacity: page >= data.pages ? 0.4 : 1 }}>
             Next →
           </button>
         </div>
       )}
-    </main>
+    </div>
   );
 }

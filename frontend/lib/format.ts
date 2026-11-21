@@ -1,9 +1,13 @@
+// frontend/lib/format.ts
 export function errMsg(e: unknown): string {
   return e instanceof Error ? e.message : "Something went wrong";
 }
 
 export function fmtDateTime(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  return new Date(iso).toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
 }
 
 // <input type="datetime-local"> value -> ISO string the backend accepts

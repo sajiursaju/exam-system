@@ -1,3 +1,4 @@
+// backend/src/controllers/auth.controller.js
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { z } = require("zod");
@@ -9,7 +10,11 @@ const registerSchema = z.object({
     name: z.string().min(2).max(100),
     email: z.string().email().max(150),
     password: z.string().min(8).max(72),
-    role: z.enum(["STUDENT", "TEACHER"]).default("STUDENT"), // ADMIN can never self-register
+    role: z.enum(["STUDENT"]).default("STUDENT"),
+    phone: z.string().max(20).optional(),
+    institute: z.string().max(150).optional(),
+    targetExam: z.string().max(100).optional(),
+    avatarUrl: z.string().optional(),
 });
 
 const loginSchema = z.object({
@@ -18,13 +23,12 @@ const loginSchema = z.object({
 });
 
 const cookieOptions = {
-    httpOnly: true, // JavaScript in the browser cannot read this cookie
+    httpOnly: true,
     secure: env.isProd,
     sameSite: "lax",
     maxAge: 24 * 60 * 60 * 1000,
 };
 
-// Same options without maxAge, used only when clearing the cookie
 const { maxAge, ...clearCookieOptions } = cookieOptions;
 
 // POST /api/auth/register
@@ -32,25 +36,26 @@ exports.register = asyncHandler(async(req, res) => {
     const data = registerSchema.parse(req.body);
     const email = data.email.toLowerCase();
 
-    // The email must be unique across admins, teachers and students,
-    // otherwise login could not tell which account it belongs to.
     if (await findByEmail(email)) {
         return res.status(409).json({ message: "Email already registered" });
     }
 
     const passwordHash = await bcrypt.hash(data.password, 10);
 
-    // Teacher goes into the teachers table, student into the students table
-    await tables[data.role].create({
+    await tables["STUDENT"].create({
         data: {
             name: data.name,
             email,
             passwordHash,
-            status: "PENDING", // an admin must approve first
+            status: "PENDING",
+            phone: data.phone || null,
+            institute: data.institute || null,
+            targetExam: data.targetExam || null,
+            avatarUrl: data.avatarUrl || null,
         },
     });
 
-    res.status(201).json({ message: "Registered. Wait for admin approval." });
+    res.status(201).json({ message: "Registered successfully! Wait for admin approval." });
 });
 
 // POST /api/auth/login
@@ -87,9 +92,8 @@ exports.logout = (req, res) => {
 };
 
 // GET /api/auth/me
-// Loads the full profile from the right table so the navbar gets avatar, name, etc.
 exports.me = asyncHandler(async(req, res) => {
     const account = await findById(req.user.role, req.user.id);
-    const { passwordHash, ...profile } = account; // never send the password hash
+    const { passwordHash, ...profile } = account;
     res.json({ user: {...profile, role: req.user.role } });
 });
