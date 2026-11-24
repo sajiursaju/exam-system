@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -26,7 +27,7 @@ enum AttemptStatus {
   GRADED
 }
 
-// ───────────── ACCOUNTS: one table per role ─────────────
+// ───────────── ACCOUNTS ─────────────
 
 model Admin {
   id           Int        @id @default(autoincrement())
@@ -94,7 +95,7 @@ model Student {
 model Exam {
   id                 Int           @id @default(autoincrement())
   title              String        @db.VarChar(200)
-  targetExam         String?       @map("target_exam") @db.VarChar(100) // <-- ADDED THIS LINE
+  targetExam         String?       @map("target_exam") @db.VarChar(100)
   description        String?       @db.Text
   durationMinutes    Int           @map("duration_minutes")
   startTime          DateTime      @map("start_time")
@@ -105,7 +106,6 @@ model Exam {
   maxTabSwitches     Int           @default(3) @map("max_tab_switches")
   createdAt          DateTime      @default(now()) @map("created_at")
 
-  // An exam is created by an admin OR a teacher, so one of these two is filled
   createdByAdminId   Int?          @map("created_by_admin_id")
   createdByTeacherId Int?          @map("created_by_teacher_id")
 
@@ -166,4 +166,34 @@ model StudentAnswer {
 
   @@unique([attemptId, questionId])
   @@map("student_answers")
+}
+
+// ───────────── STUDY MATERIALS ─────────────
+
+model Material {
+  id           Int      @id @default(autoincrement())
+  title        String   @db.VarChar(200)
+  category     String   @db.VarChar(100)
+
+  fileName     String   @unique @map("file_name") @db.VarChar(100)
+  originalName String   @map("original_name") @db.VarChar(255)
+  fileSize     Int      @map("file_size")
+
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([category, createdAt])
+  @@map("materials")
+}
+
+model Notice {
+  id          Int      @id @default(autoincrement())
+  title       String   @db.VarChar(200)
+  content     String   @db.Text
+  isPublished Boolean  @default(false) @map("is_published")
+  isPinned    Boolean  @default(false) @map("is_pinned")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([isPublished, isPinned, createdAt])
+  @@map("notices")
 }

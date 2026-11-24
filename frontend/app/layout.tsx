@@ -1,15 +1,27 @@
+
 import type { Metadata } from "next";
 import "./globals.css";
+import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
   title: "Exam Portal",
   description: "Online examination system",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="min-h-screen flex flex-col">
+        <div className="flex-1">
+          {children}
+        </div>
+
+        <Footer />
+      </body>
     </html>
   );
 }

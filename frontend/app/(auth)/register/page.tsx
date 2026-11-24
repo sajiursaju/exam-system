@@ -6,7 +6,7 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import { errMsg } from "@/lib/format";
 import { Notice } from "@/components/ui";
-import { CATEGORIES } from "@/lib/categories";
+
 
 function getInitials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
