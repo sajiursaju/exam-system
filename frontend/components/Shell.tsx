@@ -25,11 +25,11 @@ function adminNav(): NavItem[] {
     { label: "Students", href: "/admin/students", icon: "🎓" },
     { label: "Teachers", href: "/admin/teachers", icon: "👨‍🏫" },
     { label: "Study Materials", href: "/admin/materials", icon: "📚" },
-    { label: "Notice Board", href: "/admin/notices", icon: "📢" }, // ← added
+    { label: "Notice Board", href: "/admin/notices", icon: "📢" },
+    { label: "Payments", href: "/admin/payments", icon: "💳" },
     { label: "Settings", href: "/admin/settings", icon: "⚙️" },
   ];
 }
-
 function teacherNav(): NavItem[] {
   return [
     { label: "Dashboard", href: "/admin/dashboard", icon: "🏠" },

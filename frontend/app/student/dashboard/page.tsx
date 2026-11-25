@@ -1,6 +1,4 @@
 
-// frontend/app/student/dashboard/page.tsx
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -33,6 +31,7 @@ const CATEGORIES = [
 export default function StudentDashboard() {
   const me = useUser();
   const router = useRouter();
+
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -50,15 +49,16 @@ export default function StudentDashboard() {
   async function handleStart(examId: number) {
     setStartingId(examId);
     setError("");
+
     try {
       const payload = await api<{ attempt: { id: number } }>("/attempts/start", {
         method: "POST",
         body: { examId },
       });
+
       router.push(`/student/attempt/${payload.attempt.id}`);
     } catch (err: any) {
       if (err.data?.attemptId) {
-        // If already attempted, send them to their result/attempt page
         router.push(`/student/attempt/${err.data.attemptId}`);
       } else {
         setError(errMsg(err));
@@ -77,7 +77,12 @@ export default function StudentDashboard() {
   });
 
   const attempted = exams.filter((e) => e.attempts && e.attempts.length > 0).length;
-  const passed = exams.filter((e) => e.attempts?.[0]?.status === "GRADED" && e.attempts[0].totalScore >= e.passingMarks).length;
+
+  const passed = exams.filter(
+    (e) =>
+      e.attempts?.[0]?.status === "GRADED" &&
+      e.attempts[0].totalScore >= e.passingMarks
+  ).length;
 
   return (
     <div className="space-y-7 pb-8">
@@ -123,7 +128,28 @@ export default function StudentDashboard() {
             </div>
           </div>
 
+          {/* Dashboard Navigation Buttons */}
           <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+
+            {/* Payment Button */}
+            <Link
+              href="/payment"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-extrabold text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/20"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                className="h-4 w-4"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <rect x="2" y="5" width="20" height="14" rx="2" />
+                <path d="M2 10h20M6 15h4" />
+              </svg>
+              Payment
+            </Link>
+
+            {/* Edit Profile Button */}
             <Link
               href="/student/profile"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2dd4bf] px-5 py-3 text-sm font-extrabold text-[#0f172a] shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:bg-teal-200 hover:shadow-xl"
@@ -389,7 +415,7 @@ export default function StudentDashboard() {
                   </div>
                 </div>
 
-                {/* Exam Action Buttons - Original Logic Preserved */}
+                {/* Exam Action Buttons */}
                 <div className="mt-5 border-t border-slate-100 pt-4">
                   {e._count?.questions === 0 ? (
                     <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-center text-xs font-bold text-amber-700">
@@ -399,6 +425,7 @@ export default function StudentDashboard() {
                     <button
                       onClick={() => {
                         const attempt = e.attempts![0];
+
                         if (attempt.status === "IN_PROGRESS") {
                           router.push(`/student/attempt/${attempt.id}`);
                         } else {

@@ -1,7 +1,5 @@
-
 import type { Metadata } from "next";
 import "./globals.css";
-import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
   title: "Exam Portal",
@@ -19,8 +17,6 @@ export default function RootLayout({
         <div className="flex-1">
           {children}
         </div>
-
-        <Footer />
       </body>
     </html>
   );

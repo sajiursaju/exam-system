@@ -45,7 +45,6 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
-      {/* Back link */}
       <Link
         href="/student/dashboard"
         className="text-sm font-medium text-indigo-600 hover:underline"
@@ -53,7 +52,6 @@ export default function ProfilePage() {
         ← Back to Dashboard
       </Link>
 
-      {/* Heading */}
       <div className="mb-6 mt-5">
         <h1 className="text-2xl font-bold text-slate-800">
           My Profile
@@ -64,14 +62,12 @@ export default function ProfilePage() {
         </p>
       </div>
 
-      {/* Error */}
       {error && (
         <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
           {error}
         </div>
       )}
 
-      {/* Loading */}
       {!user && !error && (
         <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
           <p className="text-sm text-slate-500">
@@ -80,7 +76,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Profile form */}
       {user && <ProfileForm user={user} onSaved={setUser} />}
     </div>
   );

@@ -27,6 +27,12 @@ enum AttemptStatus {
   GRADED
 }
 
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 // ───────────── ACCOUNTS ─────────────
 
 model Admin {
@@ -69,23 +75,29 @@ model Teacher {
 }
 
 model Student {
-  id           Int           @id @default(autoincrement())
-  name         String        @db.VarChar(100)
-  email        String        @unique @db.VarChar(150)
-  passwordHash String        @map("password_hash")
-  status       UserStatus    @default(PENDING)
-  createdAt    DateTime      @default(now()) @map("created_at")
+  id              Int              @id @default(autoincrement())
+  name            String           @db.VarChar(100)
+  email           String           @unique @db.VarChar(150)
+  passwordHash    String           @map("password_hash")
+  status          UserStatus       @default(PENDING)
+  createdAt       DateTime         @default(now()) @map("created_at")
 
-  phone        String?       @db.VarChar(20)
-  address      String?       @db.Text
-  avatarUrl    String?       @map("avatar_url") @db.VarChar(255)
+  phone           String?          @db.VarChar(20)
+  address         String?          @db.Text
+  avatarUrl       String?          @map("avatar_url") @db.VarChar(255)
 
-  studentCode  String?       @map("student_code") @db.VarChar(50)
-  institute    String?       @db.VarChar(150)
-  targetExam   String?       @map("target_exam") @db.VarChar(100)
-  dateOfBirth  DateTime?     @map("date_of_birth")
+  studentCode     String?          @map("student_code") @db.VarChar(50)
+  institute       String?          @db.VarChar(150)
+  targetExam      String?          @map("target_exam") @db.VarChar(100)
+  dateOfBirth     DateTime?        @map("date_of_birth")
 
-  attempts     ExamAttempt[]
+  // FREE TRIAL
+  trialStartedAt  DateTime?        @map("trial_started_at")
+  trialEndsAt     DateTime?        @map("trial_ends_at")
+
+  attempts        ExamAttempt[]
+  paymentRequests PaymentRequest[]
+  examAccesses    ExamAccess[]
 
   @@map("students")
 }
@@ -101,7 +113,7 @@ model Exam {
   startTime          DateTime      @map("start_time")
   endTime            DateTime      @map("end_time")
   totalMarks         Int           @map("total_marks")
-  passingMarks       Int           @map("passing_marks")
+  passingMarks       Int            @map("passing_marks")
   shuffleQuestions   Boolean       @default(false) @map("shuffle_questions")
   maxTabSwitches     Int           @default(3) @map("max_tab_switches")
   createdAt          DateTime      @default(now()) @map("created_at")
@@ -113,6 +125,7 @@ model Exam {
   teacherCreator     Teacher?      @relation(fields: [createdByTeacherId], references: [id])
   questions          Question[]
   attempts           ExamAttempt[]
+  examAccesses       ExamAccess[]
 
   @@index([startTime, endTime])
   @@map("exams")
@@ -196,4 +209,46 @@ model Notice {
 
   @@index([isPublished, isPinned, createdAt])
   @@map("notices")
+}
+
+// ───────────── PAYMENT SYSTEM ─────────────
+
+model PaymentSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique @db.VarChar(50)
+  value     String   @db.VarChar(100)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("payment_settings")
+}
+
+model PaymentRequest {
+  id            Int           @id @default(autoincrement())
+  studentId     Int           @map("student_id")
+  method        String        @db.VarChar(20)
+  transactionId String        @map("transaction_id") @db.VarChar(100)
+  amount        Float         @default(99)
+  status        PaymentStatus @default(PENDING)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  student       Student       @relation(fields: [studentId], references: [id])
+  examAccesses  ExamAccess[]
+
+  @@map("payment_requests")
+}
+
+model ExamAccess {
+  id               Int            @id @default(autoincrement())
+  studentId        Int            @map("student_id")
+  examId           Int            @map("exam_id")
+  paymentRequestId Int            @map("payment_request_id")
+  grantedAt        DateTime       @default(now()) @map("granted_at")
+
+  student          Student        @relation(fields: [studentId], references: [id])
+  exam             Exam           @relation(fields: [examId], references: [id], onDelete: Cascade)
+  paymentRequest   PaymentRequest @relation(fields: [paymentRequestId], references: [id])
+
+  @@unique([studentId, examId])
+  @@map("exam_accesses")
 }

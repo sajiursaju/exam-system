@@ -24,11 +24,9 @@ app.use(helmet());
 app.use(
     cors({
         origin: function(origin, callback) {
-            // Allow requests without an Origin header (e.g. Postman/server requests)
             if (!origin || allowedOrigins.includes(origin)) {
                 return callback(null, true);
             }
-
             return callback(
                 new Error(`CORS blocked this origin: ${origin}`)
             );
@@ -76,6 +74,7 @@ app.use("/api/attempts", require("./routes/attempts.routes"));
 app.use("/api/pdf", require("./routes/pdf.routes"));
 app.use("/api/materials", require("./routes/materials.routes"));
 app.use("/api/notices", require("./routes/notices.routes"));
+app.use("/api/payments", require("./routes/payment.routes")); // ← NEW
 
 // Temporary notice test endpoint
 app.get("/api/notice-test", (req, res) => {
