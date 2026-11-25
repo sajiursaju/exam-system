@@ -89,19 +89,28 @@ export default function PaymentPage() {
     Boolean(trial.startedAt) ||
     Boolean(trial.trialStartedAt);
 
-  const trialEndsAt = trial.endsAt || trial.trialEndsAt || null;
+  // Trial date: declare once and safely handle null values.
+  const trialEndsAt: string | null =
+    trial.endsAt ?? trial.trialEndsAt ?? null;
+
+  const trialEndTime =
+    trialEndsAt !== null
+      ? new Date(trialEndsAt).getTime()
+      : null;
 
   const trialActive =
     Boolean(trial.active) ||
-    (Boolean(trialStarted) &&
-      Boolean(trialEndsAt) &&
-      new Date(trialEndsAt).getTime() > Date.now());
+    (trialStarted &&
+      trialEndTime !== null &&
+      Number.isFinite(trialEndTime) &&
+      trialEndTime > Date.now());
 
   const trialExpired =
     Boolean(trial.expired) ||
-    (Boolean(trialStarted) &&
-      Boolean(trialEndsAt) &&
-      new Date(trialEndsAt).getTime() <= Date.now());
+    (trialStarted &&
+      trialEndTime !== null &&
+      Number.isFinite(trialEndTime) &&
+      trialEndTime <= Date.now());
 
   const loadPayments = useCallback(async () => {
     setPaymentsLoading(true);
@@ -252,7 +261,13 @@ export default function PaymentPage() {
   const formatDate = (date?: string | null) => {
     if (!date) return "Not available";
 
-    return new Date(date).toLocaleString("en-BD", {
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return "Not available";
+    }
+
+    return parsedDate.toLocaleString("en-BD", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -445,9 +460,7 @@ export default function PaymentPage() {
                         : "text-orange-600"
                     }
                   >
-                    {method === "bkash"
-                      ? "bKash"
-                      : "Nagad"} Personal Number
+                    {method === "bkash" ? "bKash" : "Nagad"} Personal Number
                   </strong>{" "}
                   using <strong>Send Money</strong>.
                 </li>
@@ -602,14 +615,7 @@ export default function PaymentPage() {
                     </p>
 
                     <p className="mt-1 text-xs text-slate-400">
-                      {new Date(payment.createdAt).toLocaleDateString(
-                        "en-BD",
-                        {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        }
-                      )}
+                      {formatDate(payment.createdAt)}
                     </p>
                   </div>
 
