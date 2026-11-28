@@ -16,6 +16,7 @@ import {
   Save,
   Loader2,
 } from "lucide-react";
+import { api } from "@/lib/api";
 
 type Notice = {
   id: number;
@@ -26,10 +27,6 @@ type Notice = {
   createdAt: string;
   updatedAt: string;
 };
-
-// API base URL. Your .env.local should include /api.
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export default function AdminNoticePage() {
   const [notices, setNotices] = useState<Notice[]>([]);
@@ -60,22 +57,18 @@ export default function AdminNoticePage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(`${API_URL}/notices/admin`, {
-        method: "GET",
-        credentials: "include",
-        cache: "no-store",
-      });
+      const data = await api<Notice[] | { notices?: Notice[] }>(
+        "/notices/admin"
+      );
 
-      const data = await response.json();
+      const noticeList = Array.isArray(data)
+        ? data
+        : data.notices || [];
 
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to load notices");
-      }
-
-      setNotices(Array.isArray(data) ? data : data.notices || []);
+      setNotices(noticeList);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Something went wrong"
+        err instanceof Error ? err.message : "Failed to load notices"
       );
     } finally {
       setLoading(false);
@@ -99,41 +92,34 @@ export default function AdminNoticePage() {
       setError("");
       setSuccess("");
 
-      const url = editingId
-        ? `${API_URL}/notices/${editingId}`
-        : `${API_URL}/notices`;
+      const body = {
+        title: title.trim(),
+        content: content.trim(),
+        isPublished,
+        isPinned,
+      };
 
-      const response = await fetch(url, {
-        method: editingId ? "PUT" : "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: title.trim(),
-          content: content.trim(),
-          isPublished,
-          isPinned,
-        }),
-      });
+      if (editingId) {
+        await api(`/notices/${editingId}`, {
+          method: "PUT",
+          body,
+        });
 
-      const data = await response.json();
+        setSuccess("Notice updated successfully!");
+      } else {
+        await api("/notices", {
+          method: "POST",
+          body,
+        });
 
-      if (!response.ok) {
-        throw new Error(data.message || "Unable to save notice");
+        setSuccess("Notice created successfully!");
       }
-
-      setSuccess(
-        editingId
-          ? "Notice updated successfully!"
-          : "Notice created successfully!"
-      );
 
       resetForm();
       await fetchNotices();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Something went wrong"
+        err instanceof Error ? err.message : "Unable to save notice"
       );
     } finally {
       setSaving(false);
@@ -162,22 +148,15 @@ export default function AdminNoticePage() {
       setError("");
       setSuccess("");
 
-      const response = await fetch(`${API_URL}/notices/${id}`, {
+      await api(`/notices/${id}`, {
         method: "DELETE",
-        credentials: "include",
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to delete notice");
-      }
 
       setSuccess("Notice deleted successfully!");
       await fetchNotices();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Something went wrong"
+        err instanceof Error ? err.message : "Failed to delete notice"
       );
     }
   };
@@ -187,25 +166,17 @@ export default function AdminNoticePage() {
       setError("");
       setSuccess("");
 
-      const response = await fetch(
-        `${API_URL}/notices/${id}/publish`,
-        {
-          method: "PATCH",
-          credentials: "include",
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to update publish status");
-      }
+      await api(`/notices/${id}/publish`, {
+        method: "PATCH",
+      });
 
       setSuccess("Notice status updated successfully!");
       await fetchNotices();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Something went wrong"
+        err instanceof Error
+          ? err.message
+          : "Failed to update publish status"
       );
     }
   };
@@ -215,25 +186,17 @@ export default function AdminNoticePage() {
       setError("");
       setSuccess("");
 
-      const response = await fetch(
-        `${API_URL}/notices/${id}/pin`,
-        {
-          method: "PATCH",
-          credentials: "include",
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to update pin status");
-      }
+      await api(`/notices/${id}/pin`, {
+        method: "PATCH",
+      });
 
       setSuccess("Notice pin status updated!");
       await fetchNotices();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Something went wrong"
+        err instanceof Error
+          ? err.message
+          : "Failed to update pin status"
       );
     }
   };
@@ -249,7 +212,6 @@ export default function AdminNoticePage() {
   return (
     <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
-
         {/* Header */}
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>

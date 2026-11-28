@@ -1,4 +1,3 @@
-
 // app/features/page.tsx
 
 import Link from "next/link";
@@ -68,6 +67,14 @@ const features: Feature[] = [
       "One complete course covering every major government and private job exam, from Bangla and English to ICT and reasoning.",
     buttonLabel: "View All Job Course",
     href: "/tutorials/all-job",
+  },
+  {
+    icon: "🚢",
+    title: "Marine Engineering",
+    description:
+      "Marine Engineering preparation covering technical subjects, navigation, ship operations and recruitment exams for Bangladesh marine sector jobs.",
+    buttonLabel: "View Marine Course",
+    href: "/tutorials/marine-engineering",
   },
   {
     icon: "📊",

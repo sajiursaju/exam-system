@@ -1,4 +1,3 @@
-
 // app/online-exams/page.tsx
 
 import Link from "next/link";
@@ -100,6 +99,15 @@ const exams: ExamCard[] = [
     icon: "💼",
     title: "All Job Preparation Model Test",
     titleBn: "সকল চাকরির মডেল টেস্ট",
+    questions: 100,
+    duration: "60 min",
+    marks: 100,
+    type: "Paid",
+  },
+  {
+    icon: "🚢",
+    title: "Marine Engineering Model Test",
+    titleBn: "মেরিন ইঞ্জিনিয়ারিং মডেল টেস্ট",
     questions: 100,
     duration: "60 min",
     marks: 100,
